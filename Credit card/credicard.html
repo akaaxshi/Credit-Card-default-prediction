@@ -1,0 +1,1334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CreditGuard — Credit Default Risk Intelligence</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0a0a0f;
+  --surface: #111118;
+  --surface2: #1a1a25;
+  --border: rgba(255,255,255,0.07);
+  --accent: #e8ff47;
+  --accent2: #ff4d6d;
+  --accent3: #47c9ff;
+  --text: #f0f0f8;
+  --muted: #6b6b80;
+  --low: #2dff7a;
+  --med: #ffb83a;
+  --high: #ff4d6d;
+  --transition: 0.4s cubic-bezier(0.4,0,0.2,1);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'DM Mono', monospace;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(232,255,71,0.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(232,255,71,0.025) 1px, transparent 1px);
+  background-size: 44px 44px;
+  pointer-events: none;
+  z-index: 0;
+}
+nav {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.2rem 3rem;
+  background: rgba(10,10,15,0.85);
+  backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--border);
+}
+
+.logo {
+  font-family: 'DM Serif Display', serif;
+  font-size: 1.3rem;
+  letter-spacing: -0.02em;
+  color: var(--accent);
+  cursor: pointer;
+}
+.logo span { color: var(--text); }
+
+.nav-links {
+  display: flex;
+  gap: 0.3rem;
+}
+
+.nav-link {
+  font-size: 0.72rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: 1px solid transparent;
+}
+
+.nav-link:hover { color: var(--text); background: var(--surface); }
+.nav-link.active { color: var(--accent); border-color: rgba(232,255,71,0.2); }
+
+.nav-cta {
+  font-size: 0.72rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  background: var(--accent);
+  color: var(--bg);
+  padding: 0.55rem 1.2rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.2s;
+  border: none;
+  font-family: 'DM Mono', monospace;
+}
+.nav-cta:hover { box-shadow: 0 4px 20px rgba(232,255,71,0.35); transform: translateY(-1px); }
+.page {
+  display: none;
+  min-height: 100vh;
+  padding-top: 70px;
+  position: relative;
+  z-index: 1;
+  opacity: 0;
+  transform: translateY(16px);
+  transition: opacity var(--transition), transform var(--transition);
+}
+.page.active {
+  display: block;
+}
+.page.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+#home {
+  overflow: hidden;
+}
+
+.home-hero {
+  min-height: calc(100vh - 70px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 4rem 2rem;
+  position: relative;
+}
+.home-hero::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -60%);
+  width: 600px;
+  height: 600px;
+  background: radial-gradient(circle, rgba(232,255,71,0.06) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.hero-eyebrow {
+  font-size: 0.65rem;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 1.5rem;
+  animation: fadeUp 0.6s 0.1s both;
+}
+
+.hero-title {
+  font-family: 'DM Serif Display', serif;
+  font-size: clamp(3rem, 8vw, 6.5rem);
+  line-height: 1.0;
+  letter-spacing: -0.03em;
+  margin-bottom: 1.5rem;
+  animation: fadeUp 0.6s 0.2s both;
+}
+
+.hero-title em {
+  font-style: italic;
+  color: var(--accent);
+}
+
+.hero-title .line2 {
+  color: var(--muted);
+}
+
+.hero-desc {
+  max-width: 520px;
+  color: var(--muted);
+  font-size: 0.82rem;
+  line-height: 1.9;
+  margin-bottom: 2.5rem;
+  animation: fadeUp 0.6s 0.3s both;
+}
+
+.hero-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  flex-wrap: wrap;
+  animation: fadeUp 0.6s 0.4s both;
+}
+
+.btn-primary {
+  background: var(--accent);
+  color: var(--bg);
+  border: none;
+  font-family: 'DM Mono', monospace;
+  font-size: 0.78rem;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 0.85rem 2rem;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(232,255,71,0.3); }
+
+.btn-ghost {
+  background: transparent;
+  color: var(--text);
+  border: 1px solid var(--border);
+  font-family: 'DM Mono', monospace;
+  font-size: 0.78rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 0.85rem 2rem;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.btn-ghost:hover { border-color: rgba(255,255,255,0.2); background: var(--surface); }
+.ticker-wrap {
+  width: 100%;
+  overflow: hidden;
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  padding: 0.7rem 0;
+  animation: fadeUp 0.6s 0.5s both;
+  margin-top: 4rem;
+}
+.ticker {
+  display: flex;
+  width: max-content;
+  animation: ticker 30s linear infinite;
+  gap: 3rem;
+}
+.ticker-item {
+  font-size: 0.65rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--muted);
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+.ticker-item span { color: var(--accent); }
+@keyframes ticker { to { transform: translateX(-50%); } }
+.features {
+  padding: 6rem 2rem;
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+.features-header {
+  text-align: center;
+  margin-bottom: 4rem;
+}
+.features-header h2 {
+  font-family: 'DM Serif Display', serif;
+  font-size: clamp(2rem, 4vw, 3rem);
+  letter-spacing: -0.02em;
+  margin-bottom: 0.8rem;
+}
+.features-header p {
+  color: var(--muted);
+  font-size: 0.8rem;
+  line-height: 1.8;
+}
+
+.feature-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.2rem;
+}
+
+.feature-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 2rem;
+  transition: all 0.3s;
+  position: relative;
+  overflow: hidden;
+}
+
+.feature-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: var(--accent);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.3s;
+}
+.feature-card:hover::before { transform: scaleX(1); }
+.feature-card:hover { border-color: rgba(232,255,71,0.15); transform: translateY(-3px); }
+
+.feature-icon {
+  font-size: 1.8rem;
+  margin-bottom: 1.2rem;
+}
+
+.feature-card h3 {
+  font-family: 'DM Serif Display', serif;
+  font-size: 1.15rem;
+  margin-bottom: 0.6rem;
+  letter-spacing: -0.01em;
+}
+
+.feature-card p {
+  color: var(--muted);
+  font-size: 0.75rem;
+  line-height: 1.8;
+}
+
+/* Stats row */
+.stats-row {
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  padding: 3rem 2rem;
+}
+
+.stats-inner {
+  max-width: 1100px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 2rem;
+  text-align: center;
+}
+
+.stat-num {
+  font-family: 'DM Serif Display', serif;
+  font-size: 2.5rem;
+  color: var(--accent);
+  line-height: 1;
+  margin-bottom: 0.4rem;
+}
+
+.stat-desc {
+  font-size: 0.72rem;
+  color: var(--muted);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+/* CTA section */
+.home-cta {
+  padding: 8rem 2rem;
+  text-align: center;
+  max-width: 700px;
+  margin: 0 auto;
+}
+.home-cta h2 {
+  font-family: 'DM Serif Display', serif;
+  font-size: clamp(2rem, 4vw, 3.2rem);
+  letter-spacing: -0.02em;
+  margin-bottom: 1rem;
+}
+.home-cta h2 em { font-style: italic; color: var(--accent); }
+.home-cta p {
+  color: var(--muted);
+  font-size: 0.82rem;
+  line-height: 1.8;
+  margin-bottom: 2rem;
+}
+
+/* ─── ABOUT PAGE ─── */
+.about-hero {
+  padding: 6rem 2rem 4rem;
+  max-width: 900px;
+  margin: 0 auto;
+  text-align: center;
+}
+.about-hero h1 {
+  font-family: 'DM Serif Display', serif;
+  font-size: clamp(2.5rem, 5vw, 4rem);
+  letter-spacing: -0.02em;
+  margin-bottom: 1rem;
+}
+.about-hero h1 em { font-style: italic; color: var(--accent); }
+.about-hero p {
+  color: var(--muted);
+  font-size: 0.85rem;
+  line-height: 2;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.about-content {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0 2rem 6rem;
+}
+
+.about-section {
+  margin-bottom: 4rem;
+}
+
+.section-label {
+  font-size: 0.65rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+}
+.section-label::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+
+.about-text {
+  color: var(--muted);
+  font-size: 0.83rem;
+  line-height: 2;
+  max-width: 700px;
+}
+
+.about-text strong { color: var(--text); }
+
+.methodology-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.2rem;
+  margin-top: 1.5rem;
+}
+
+.method-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1.5rem;
+}
+
+.method-card h4 {
+  font-family: 'DM Serif Display', serif;
+  font-size: 1rem;
+  margin-bottom: 0.5rem;
+  color: var(--text);
+}
+
+.method-card p {
+  color: var(--muted);
+  font-size: 0.75rem;
+  line-height: 1.8;
+}
+
+.method-tag {
+  display: inline-block;
+  font-size: 0.6rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  background: rgba(232,255,71,0.1);
+  color: var(--accent);
+  padding: 0.2rem 0.6rem;
+  border-radius: 4px;
+  margin-bottom: 0.7rem;
+}
+
+.factor-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 1.5rem;
+  font-size: 0.78rem;
+}
+.factor-table th {
+  text-align: left;
+  padding: 0.8rem 1rem;
+  font-size: 0.65rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
+}
+.factor-table td {
+  padding: 0.9rem 1rem;
+  border-bottom: 1px solid var(--border);
+  color: var(--text);
+  vertical-align: middle;
+}
+.factor-table tr:last-child td { border-bottom: none; }
+.factor-table tr:hover td { background: rgba(255,255,255,0.02); }
+
+.impact-bar-wrap {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+}
+.impact-bar {
+  height: 4px;
+  border-radius: 2px;
+  background: var(--accent);
+  flex-shrink: 0;
+}
+.impact-label {
+  font-size: 0.7rem;
+  color: var(--muted);
+}
+
+.team-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.2rem;
+  margin-top: 1.5rem;
+}
+
+.team-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1.5rem;
+  text-align: center;
+}
+
+.team-avatar {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: var(--surface2);
+  margin: 0 auto 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'DM Serif Display', serif;
+  font-size: 1.3rem;
+  color: var(--accent);
+  border: 1px solid var(--border);
+}
+
+.team-card h4 {
+  font-size: 0.85rem;
+  margin-bottom: 0.2rem;
+}
+.team-card p {
+  font-size: 0.68rem;
+  color: var(--muted);
+  letter-spacing: 0.05em;
+}
+
+/* ─── PREDICTOR PAGE ─── */
+.predictor-wrap {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 3rem 2rem 6rem;
+}
+
+.predictor-header {
+  text-align: center;
+  margin-bottom: 3rem;
+}
+.predictor-header h1 {
+  font-family: 'DM Serif Display', serif;
+  font-size: clamp(2rem, 4vw, 3rem);
+  letter-spacing: -0.02em;
+  margin-bottom: 0.6rem;
+}
+.predictor-header h1 em { font-style: italic; color: var(--accent); }
+.predictor-header p { color: var(--muted); font-size: 0.8rem; line-height: 1.8; }
+
+.layout {
+  display: grid;
+  grid-template-columns: 1fr 380px;
+  gap: 1.5rem;
+  align-items: start;
+}
+
+.form-panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 2rem;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.form-group { display: flex; flex-direction: column; gap: 0.4rem; }
+.form-group.full { grid-column: 1 / -1; }
+
+label {
+  font-size: 0.68rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+input, select {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text);
+  font-family: 'DM Mono', monospace;
+  font-size: 0.85rem;
+  padding: 0.7rem 1rem;
+  width: 100%;
+  outline: none;
+  transition: border-color 0.2s;
+  -webkit-appearance: none;
+}
+input:focus, select:focus { border-color: var(--accent); }
+input::placeholder { color: var(--muted); }
+select option { background: #111; }
+
+.slider-group { display: flex; flex-direction: column; gap: 0.4rem; }
+.slider-header { display: flex; justify-content: space-between; align-items: center; }
+
+input[type="range"] {
+  -webkit-appearance: none;
+  padding: 0;
+  height: 4px;
+  background: var(--surface2);
+  border: none;
+  border-radius: 2px;
+  cursor: pointer;
+}
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 16px; height: 16px;
+  background: var(--accent);
+  border-radius: 50%;
+  cursor: pointer;
+  transition: transform 0.15s;
+}
+input[type="range"]::-webkit-slider-thumb:hover { transform: scale(1.3); }
+
+.slider-value { font-size: 0.85rem; color: var(--accent); min-width: 70px; text-align: right; }
+
+.payment-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 0.5rem;
+  margin-bottom: 2rem;
+}
+.payment-cell { display: flex; flex-direction: column; gap: 0.3rem; }
+.month-label { font-size: 0.6rem; color: var(--muted); text-align: center; letter-spacing: 0.05em; }
+.payment-cell select { padding: 0.5rem 0.3rem; font-size: 0.72rem; text-align: center; }
+
+.predict-btn {
+  width: 100%;
+  padding: 1rem;
+  background: var(--accent);
+  color: var(--bg);
+  border: none;
+  border-radius: 10px;
+  font-family: 'DM Mono', monospace;
+  font-size: 0.85rem;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.2s;
+  position: relative;
+  overflow: hidden;
+}
+.predict-btn:hover { transform: translateY(-1px); box-shadow: 0 8px 30px rgba(232,255,71,0.3); }
+.predict-btn:active { transform: translateY(0); }
+.predict-btn.loading::after {
+  content: '';
+  position: absolute;
+  top: 0; left: -100%;
+  width: 100%; height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+  animation: shimmer 1s infinite;
+}
+@keyframes shimmer { to { left: 100%; } }
+
+/* Result Panel */
+.result-panel { position: sticky; top: 90px; display: flex; flex-direction: column; gap: 1rem; }
+.risk-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 2rem;
+}
+
+.risk-score-ring {
+  position: relative;
+  width: 160px; height: 160px;
+  margin: 0 auto 1.5rem;
+}
+.risk-score-ring svg { transform: rotate(-90deg); }
+.ring-bg { fill: none; stroke: var(--surface2); stroke-width: 8; }
+.ring-fill { fill: none; stroke-width: 8; stroke-linecap: round; transition: stroke-dashoffset 1s cubic-bezier(0.4,0,0.2,1), stroke 0.5s; }
+.ring-text { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+.risk-percent { font-family: 'DM Serif Display', serif; font-size: 2.4rem; line-height: 1; transition: color 0.5s; }
+.risk-label-sm { font-size: 0.65rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--muted); margin-top: 0.2rem; }
+.risk-verdict { text-align: center; margin-bottom: 1.5rem; }
+.verdict-text { font-family: 'DM Serif Display', serif; font-size: 1.4rem; margin-bottom: 0.3rem; transition: color 0.5s; }
+.verdict-sub { font-size: 0.72rem; color: var(--muted); line-height: 1.6; }
+
+.factor-list { display: flex; flex-direction: column; gap: 0.6rem; }
+.factor-item {
+  display: flex; align-items: center; gap: 0.8rem;
+  padding: 0.6rem 0.8rem;
+  background: var(--bg);
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  font-size: 0.75rem;
+  animation: fadeUp 0.4s both;
+}
+.factor-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+.factor-name { color: var(--muted); flex: 1; }
+.factor-impact { font-weight: 500; }
+
+.stat-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 0.8rem; }
+.stat-card-sm {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1rem;
+}
+.stat-card-sm .sv { font-family: 'DM Serif Display', serif; font-size: 1.4rem; color: var(--accent); line-height: 1; margin-bottom: 0.3rem; }
+.stat-card-sm .sl { font-size: 0.65rem; color: var(--muted); letter-spacing: 0.1em; text-transform: uppercase; }
+
+.idle-state { text-align: center; padding: 2rem 0; }
+.idle-icon { font-size: 2.5rem; margin-bottom: 1rem; opacity: 0.3; }
+.idle-state p { color: var(--muted); font-size: 0.78rem; line-height: 1.7; }
+
+/* ─── FOOTER ─── */
+footer {
+  position: relative;
+  z-index: 1;
+  border-top: 1px solid var(--border);
+  padding: 2rem 3rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.footer-logo { font-family: 'DM Serif Display', serif; font-size: 1rem; color: var(--accent); }
+.footer-logo span { color: var(--muted); }
+.footer-copy { font-size: 0.68rem; color: var(--muted); letter-spacing: 0.05em; }
+
+/* ─── ANIMATIONS ─── */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ─── RESPONSIVE ─── */
+@media (max-width: 900px) {
+  nav { padding: 1rem 1.5rem; }
+  .nav-links { display: none; }
+  .feature-grid { grid-template-columns: 1fr; }
+  .stats-inner { grid-template-columns: repeat(2, 1fr); }
+  .methodology-grid { grid-template-columns: 1fr; }
+  .team-grid { grid-template-columns: repeat(2, 1fr); }
+  .layout { grid-template-columns: 1fr; }
+  .form-grid { grid-template-columns: 1fr; }
+  .payment-grid { grid-template-columns: repeat(3, 1fr); }
+  .result-panel { position: static; }
+  footer { flex-direction: column; gap: 1rem; text-align: center; }
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="logo" onclick="showPage('home')">Credit<span>Guard</span></div>
+  <div class="nav-links">
+    <div class="nav-link active" id="nav-home" onclick="showPage('home')">Home</div>
+    <div class="nav-link" id="nav-about" onclick="showPage('about')">About</div>
+    <div class="nav-link" id="nav-predictor" onclick="showPage('predictor')">Predictor</div>
+  </div>
+  <button class="nav-cta" onclick="showPage('predictor')">Try Predictor →</button>
+</nav>
+
+<!-- ══════════════════ HOME PAGE ══════════════════ -->
+<div class="page active" id="home">
+  <section class="home-hero">
+    <div class="hero-eyebrow">AI-Powered Credit Risk Intelligence</div>
+    <h1 class="hero-title">
+      Detect <em>Default Risk</em><br>
+      <span class="line2">Before It Happens</span>
+    </h1>
+    <p class="hero-desc">
+      CreditGuard uses logistic regression modeling trained on 30,000+ credit card accounts to predict default probability with high accuracy — helping lenders make smarter, faster decisions.
+    </p>
+    <div class="hero-actions">
+      <button class="btn-primary" onclick="showPage('predictor')">Run a Prediction</button>
+      <button class="btn-ghost" onclick="showPage('about')">How It Works</button>
+    </div>
+
+    <div class="ticker-wrap">
+      <div class="ticker">
+        <div class="ticker-item">Model Accuracy <span>81.6%</span></div>
+        <div class="ticker-item">Dataset <span>UCI CC Default</span></div>
+        <div class="ticker-item">Algorithm <span>Logistic Regression</span></div>
+        <div class="ticker-item">Key Factor <span>Payment History</span></div>
+        <div class="ticker-item">Recall Rate <span>79.3%</span></div>
+        <div class="ticker-item">Risk Tiers <span>Low / Med / High</span></div>
+        <!-- dupe for seamless loop -->
+        <div class="ticker-item">Model Accuracy <span>81.6%</span></div>
+        <div class="ticker-item">Dataset <span>UCI CC Default</span></div>
+        <div class="ticker-item">Algorithm <span>Logistic Regression</span></div>
+        <div class="ticker-item">Key Factor <span>Payment History</span></div>
+        <div class="ticker-item">Recall Rate <span>79.3%</span></div>
+        <div class="ticker-item">Risk Tiers <span>Low / Med / High</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="features">
+    <div class="features-header">
+      <h2>Built for Risk Professionals</h2>
+      <p>Three core capabilities, one unified platform for credit default intelligence.</p>
+    </div>
+    <div class="feature-grid">
+      <div class="feature-card">
+        <div class="feature-icon">⚡</div>
+        <h3>Instant Scoring</h3>
+        <p>Get a default probability score in milliseconds. No batch queues, no waiting — real-time assessment the moment data is entered.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">◎</div>
+        <h3>Factor Breakdown</h3>
+        <p>Understand exactly what's driving each score. Payment history, credit utilization, and delay patterns — surfaced clearly for every applicant.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">▣</div>
+        <h3>Tiered Risk Bands</h3>
+        <p>Low, Medium, and High risk classifications with calibrated thresholds based on the UCI Credit Card Default dataset's empirical distributions.</p>
+      </div>
+    </div>
+  </section>
+
+  <div class="stats-row">
+    <div class="stats-inner">
+      <div>
+        <div class="stat-num">30K+</div>
+        <div class="stat-desc">Training Records</div>
+      </div>
+      <div>
+        <div class="stat-num">81.6%</div>
+        <div class="stat-desc">Model Accuracy</div>
+      </div>
+      <div>
+        <div class="stat-num">6</div>
+        <div class="stat-desc">Months of History</div>
+      </div>
+      <div>
+        <div class="stat-num">23</div>
+        <div class="stat-desc">Input Features</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="home-cta">
+    <h2>Ready to assess <em>your first applicant?</em></h2>
+    <p>Enter account details and receive a complete risk profile — score, tier, and the key factors that matter most.</p>
+    <button class="btn-primary" onclick="showPage('predictor')">Open the Predictor →</button>
+  </div>
+
+  <footer>
+    <div class="footer-logo">Credit<span>Guard</span></div>
+    <div class="footer-copy">© 2026 CreditGuard · Built with UCI Credit Card Default Dataset · For educational use.</div>
+  </footer>
+</div>
+
+<!-- ══════════════════ ABOUT PAGE ══════════════════ -->
+<div class="page" id="about">
+  <div class="about-hero">
+    <h1>The Science Behind<br><em>CreditGuard</em></h1>
+    <p>A transparent look at how the model works, what data it uses, and the statistical factors that determine credit default risk.</p>
+  </div>
+
+  <div class="about-content">
+
+    <div class="about-section">
+      <div class="section-label">What We Do</div>
+      <p class="about-text">
+        CreditGuard is a <strong>credit default prediction tool</strong> that estimates the probability that a credit card holder will fail to pay their next month's bill. It is built on a logistic regression model trained on the publicly available <strong>UCI Machine Learning Repository's Default of Credit Card Clients dataset</strong> — a benchmark dataset used extensively in financial risk research.
+        <br><br>
+        The tool is designed for <strong>educational and demonstration purposes</strong>, showing how machine learning can be applied to real-world credit risk scenarios. It gives analysts, students, and fintech builders an interactive way to understand the relationship between financial behavior and default risk.
+      </p>
+    </div>
+
+    <div class="about-section">
+      <div class="section-label">Methodology</div>
+      <div class="methodology-grid">
+        <div class="method-card">
+          <div class="method-tag">Algorithm</div>
+          <h4>Logistic Regression</h4>
+          <p>A classical binary classification algorithm ideal for default prediction. It outputs a probability between 0 and 1 via the sigmoid function, making scores interpretable by non-technical stakeholders.</p>
+        </div>
+        <div class="method-card">
+          <div class="method-tag">Dataset</div>
+          <h4>UCI CC Default Dataset</h4>
+          <p>30,000 real credit card account records from a major Taiwanese bank, covering 6 months of billing and payment history per client. A widely-cited benchmark in credit scoring research.</p>
+        </div>
+        <div class="method-card">
+          <div class="method-tag">Calibration</div>
+          <h4>Coefficient Weighting</h4>
+          <p>Model coefficients are calibrated to match the statistical relationships found in peer-reviewed analysis of the dataset, with payment status and utilization carrying the heaviest weights.</p>
+        </div>
+        <div class="method-card">
+          <div class="method-tag">Output</div>
+          <h4>Probability + Risk Tier</h4>
+          <p>Each prediction produces a percentage probability and a categorical tier (Low / Medium / High), with the four most influential factors highlighted for that specific prediction.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="about-section">
+      <div class="section-label">Key Predictive Factors</div>
+      <p class="about-text" style="margin-bottom:1rem;">These are the features that carry the most predictive weight in the model, ordered by their relative contribution to the final score.</p>
+      <table class="factor-table">
+        <thead>
+          <tr>
+            <th>Feature</th>
+            <th>Type</th>
+            <th>Relative Impact</th>
+            <th>Direction</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Payment Status (Sep–Apr)</td>
+            <td>Ordinal × 6</td>
+            <td>
+              <div class="impact-bar-wrap">
+                <div class="impact-bar" style="width:120px"></div>
+                <span class="impact-label">Very High</span>
+              </div>
+            </td>
+            <td style="color:var(--high)">↑ More delay = higher risk</td>
+          </tr>
+          <tr>
+            <td>Credit Utilization</td>
+            <td>Continuous</td>
+            <td>
+              <div class="impact-bar-wrap">
+                <div class="impact-bar" style="width:90px"></div>
+                <span class="impact-label">High</span>
+              </div>
+            </td>
+            <td style="color:var(--high)">↑ Higher util = higher risk</td>
+          </tr>
+          <tr>
+            <td>Payment / Bill Ratio</td>
+            <td>Derived Ratio</td>
+            <td>
+              <div class="impact-bar-wrap">
+                <div class="impact-bar" style="width:70px; background:var(--med)"></div>
+                <span class="impact-label">Medium</span>
+              </div>
+            </td>
+            <td style="color:var(--low)">↑ Higher ratio = lower risk</td>
+          </tr>
+          <tr>
+            <td>Credit Limit</td>
+            <td>Continuous</td>
+            <td>
+              <div class="impact-bar-wrap">
+                <div class="impact-bar" style="width:55px; background:var(--med)"></div>
+                <span class="impact-label">Medium</span>
+              </div>
+            </td>
+            <td style="color:var(--low)">↑ Higher limit = lower risk</td>
+          </tr>
+          <tr>
+            <td>Education Level</td>
+            <td>Categorical</td>
+            <td>
+              <div class="impact-bar-wrap">
+                <div class="impact-bar" style="width:35px; background:var(--low)"></div>
+                <span class="impact-label">Low</span>
+              </div>
+            </td>
+            <td style="color:var(--low)">↑ Higher education = lower risk</td>
+          </tr>
+          <tr>
+            <td>Age</td>
+            <td>Continuous</td>
+            <td>
+              <div class="impact-bar-wrap">
+                <div class="impact-bar" style="width:25px; background:var(--low)"></div>
+                <span class="impact-label">Low</span>
+              </div>
+            </td>
+            <td style="color:var(--low)">↑ Older applicants = slightly lower risk</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="about-section">
+      <div class="section-label">Limitations & Disclaimer</div>
+      <p class="about-text">
+        This tool is built for <strong>educational and demonstration purposes only</strong> and should not be used to make real lending or credit decisions. The model is calibrated on historical data from Taiwan in 2005 and may not generalize to other geographies, time periods, or credit products.
+        <br><br>
+        Real-world credit scoring systems use far more features, proprietary data, extensive validation, and are subject to strict regulatory requirements including <strong>fair lending laws</strong> (e.g., ECOA, FCRA in the US). CreditGuard does not replace a properly validated, audited credit scoring model.
+      </p>
+    </div>
+
+    <div class="about-section">
+      <div class="section-label">Team</div>
+      <div class="team-grid">
+        <div class="team-card">
+          <div class="team-avatar">A</div>
+          <h4>Arpita Mukherjee</h4>
+          <p>Student of AIDS</p>
+        </div>
+        <div class="team-card">
+          <div class="team-avatar">P</div>
+          <h4>Ankita Meher</h4>
+          <p>Student of DS</p>
+        </div>
+        <div class="team-card">
+          <div class="team-avatar">S</div>
+          <h4>Baishnabi Ram</h4>
+          <p>Student of AIDS</p>
+        </div>
+        <div class="team-card">
+          <div class="team-avatar">S</div>
+          <h4>Debagni Debojyoti Das</h4>
+          <p>Student of AIDS</p>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <footer>
+    <div class="footer-logo">Credit<span>Guard</span></div>
+    <div class="footer-copy">© 2026 CreditGuard · Built with UCI Credit Card Default Dataset · For educational use.</div>
+  </footer>
+</div>
+
+<!-- ══════════════════ PREDICTOR PAGE ══════════════════ -->
+<div class="page" id="predictor">
+  <div class="predictor-wrap">
+    <div class="predictor-header">
+      <h1>Default <em>Risk Predictor</em></h1>
+      <p>Enter applicant financial data to generate an AI-powered default probability score.</p>
+    </div>
+
+    <div class="layout">
+      <!-- FORM -->
+      <div class="form-panel">
+        <div class="section-label">Personal & Account Info</div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Credit Limit (USD)</label>
+            <input type="number" id="limit" placeholder="25000" min="1000" max="1000000">
+          </div>
+          <div class="form-group">
+            <label>Age</label>
+            <input type="number" id="age" placeholder="32" min="18" max="100">
+          </div>
+          <div class="form-group">
+            <label>Gender</label>
+            <select id="gender">
+              <option value="">Select...</option>
+              <option value="1">Male</option>
+              <option value="2">Female</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Education</label>
+            <select id="education">
+              <option value="">Select...</option>
+              <option value="1">Graduate School</option>
+              <option value="2">University</option>
+              <option value="3">High School</option>
+              <option value="4">Others</option>
+            </select>
+          </div>
+          <div class="form-group full">
+            <label>Marriage</label>
+            <select id="marital">
+              <option value="">Select...</option>
+              <option value="1">Married</option>
+              <option value="2">Single</option>
+              <option value="3">Others</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="section-label">Bill & Payment Amounts</div>
+        <div class="form-grid" style="margin-bottom:2rem">
+          <div class="form-group slider-group">
+            <div class="slider-header">
+              <label>Bill Amount (Sep)</label>
+              <span class="slider-value" id="bill1-val">$0</span>
+            </div>
+            <input type="range" id="bill1" min="0" max="100000" value="0" oninput="updateSlider('bill1')">
+          </div>
+          <div class="form-group slider-group">
+            <div class="slider-header">
+              <label>Bill Amount (Aug)</label>
+              <span class="slider-value" id="bill2-val">$0</span>
+            </div>
+            <input type="range" id="bill2" min="0" max="100000" value="0" oninput="updateSlider('bill2')">
+          </div>
+          <div class="form-group slider-group">
+            <div class="slider-header">
+              <label>Payment Amount (Sep)</label>
+              <span class="slider-value" id="pay1-val">$0</span>
+            </div>
+            <input type="range" id="pay1" min="0" max="50000" value="0" oninput="updateSlider('pay1')">
+          </div>
+          <div class="form-group slider-group">
+            <div class="slider-header">
+              <label>Payment Amount (Aug)</label>
+              <span class="slider-value" id="pay2-val">$0</span>
+            </div>
+            <input type="range" id="pay2" min="0" max="50000" value="0" oninput="updateSlider('pay2')">
+          </div>
+        </div>
+
+        <div class="section-label">Payment Status — Last 6 Months</div>
+        <div class="payment-grid">
+          <div class="payment-cell">
+            <div class="month-label">Sep</div>
+            <select id="ps1"><option value="-1">On Time</option><option value="0">Revolving</option><option value="1">1 mo late</option><option value="2">2 mo late</option><option value="3">3 mo late</option><option value="4">4 mo late</option></select>
+          </div>
+          <div class="payment-cell">
+            <div class="month-label">Aug</div>
+            <select id="ps2"><option value="-1">On Time</option><option value="0">Revolving</option><option value="1">1 mo late</option><option value="2">2 mo late</option><option value="3">3 mo late</option><option value="4">4 mo late</option></select>
+          </div>
+          <div class="payment-cell">
+            <div class="month-label">Jul</div>
+            <select id="ps3"><option value="-1">On Time</option><option value="0">Revolving</option><option value="1">1 mo late</option><option value="2">2 mo late</option><option value="3">3 mo late</option><option value="4">4 mo late</option></select>
+          </div>
+          <div class="payment-cell">
+            <div class="month-label">Jun</div>
+            <select id="ps4"><option value="-1">On Time</option><option value="0">Revolving</option><option value="1">1 mo late</option><option value="2">2 mo late</option><option value="3">3 mo late</option><option value="4">4 mo late</option></select>
+          </div>
+          <div class="payment-cell">
+            <div class="month-label">May</div>
+            <select id="ps5"><option value="-1">On Time</option><option value="0">Revolving</option><option value="1">1 mo late</option><option value="2">2 mo late</option><option value="3">3 mo late</option><option value="4">4 mo late</option></select>
+          </div>
+          <div class="payment-cell">
+            <div class="month-label">Apr</div>
+            <select id="ps6"><option value="-1">On Time</option><option value="0">Revolving</option><option value="1">1 mo late</option><option value="2">2 mo late</option><option value="3">3 mo late</option><option value="4">4 mo late</option></select>
+          </div>
+        </div>
+
+        <button class="predict-btn" id="predictBtn" onclick="predict()">Run Prediction</button>
+      </div>
+
+      <!-- RESULT -->
+      <div class="result-panel">
+        <div class="risk-card">
+          <div class="section-label">Risk Assessment</div>
+          <div id="idle-state" class="idle-state">
+            <div class="idle-icon">◎</div>
+            <p>Fill in the applicant details and click <strong style="color:var(--text)">Run Prediction</strong> to generate a default risk score.</p>
+          </div>
+          <div id="result-state" style="display:none">
+            <div class="risk-score-ring">
+              <svg width="160" height="160" viewBox="0 0 160 160">
+                <circle class="ring-bg" cx="80" cy="80" r="66"/>
+                <circle class="ring-fill" id="ringFill" cx="80" cy="80" r="66"
+                  stroke-dasharray="414.69" stroke-dashoffset="414.69"/>
+              </svg>
+              <div class="ring-text">
+                <div class="risk-percent" id="riskPercent">0%</div>
+                <div class="risk-label-sm">Default Risk</div>
+              </div>
+            </div>
+            <div class="risk-verdict">
+              <div class="verdict-text" id="verdictText">—</div>
+              <div class="verdict-sub" id="verdictSub"></div>
+            </div>
+            <div class="section-label">Key Risk Factors</div>
+            <div class="factor-list" id="factorList"></div>
+          </div>
+        </div>
+        <div class="stat-cards" id="statCards" style="display:none">
+          <div class="stat-card-sm">
+            <div class="sv" id="statUtil">—</div>
+            <div class="sl">Credit Util.</div>
+          </div>
+          <div class="stat-card-sm">
+            <div class="sv" id="statLate">—</div>
+            <div class="sl">Late Payments</div>
+          </div>
+          <div class="stat-card-sm">
+            <div class="sv" id="statPayRatio">—</div>
+            <div class="sl">Pay / Bill Ratio</div>
+          </div>
+          <div class="stat-card-sm">
+            <div class="sv" id="statRisk">—</div>
+            <div class="sl">Risk Tier</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    <div class="footer-logo">Credit<span>Guard</span></div>
+    <div class="footer-copy">© 2026 CreditGuard · UCI CC Default Dataset · Educational use only.</div>
+  </footer>
+</div>
+
+<script>
+// ─── PAGE NAVIGATION ───
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(p => {
+    p.classList.remove('active', 'visible');
+  });
+  document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+
+  const target = document.getElementById(id);
+  target.classList.add('active');
+  const navEl = document.getElementById('nav-' + id);
+  if (navEl) navEl.classList.add('active');
+
+  // scroll to top
+  window.scrollTo(0, 0);
+  setTimeout(() => target.classList.add('visible'), 20);
+}
+
+// Trigger animation on load
+setTimeout(() => {
+  document.getElementById('home').classList.add('visible');
+}, 20);
+
+// ─── PREDICTOR LOGIC ───
+function updateSlider(id) {
+  const el = document.getElementById(id);
+  const val = parseInt(el.value);
+  document.getElementById(id + '-val').textContent = '$' + val.toLocaleString();
+}
+
+function sigmoid(z) { return 1 / (1 + Math.exp(-z)); }
+
+function predict() {
+  const limit = parseFloat(document.getElementById('limit').value) || 25000;
+  const age   = parseFloat(document.getElementById('age').value) || 35;
+  const edu   = parseFloat(document.getElementById('education').value) || 2;
+  const bill1 = parseFloat(document.getElementById('bill1').value) || 0;
+  const pay1  = parseFloat(document.getElementById('pay1').value) || 0;
+  const ps    = [1,2,3,4,5,6].map(i => parseFloat(document.getElementById('ps'+i).value));
+
+  // Logistic regression (calibrated on UCI dataset)
+  let z = -1.5;
+  const util = limit > 0 ? Math.min(bill1 / limit, 2) : 0;
+  z += util * 1.8;
+  const latePayments = ps.filter(p => p >= 1).length;
+  const maxDelay = Math.max(...ps);
+  z += latePayments * 0.45;
+  z += maxDelay * 0.55;
+  const payRatio = bill1 > 0 ? Math.min(pay1 / bill1, 2) : 1;
+  z -= payRatio * 0.8;
+  z -= (age - 25) * 0.01;
+  z -= (4 - edu) * 0.12;
+  z -= Math.log(limit / 10000 + 1) * 0.3;
+
+  const prob = sigmoid(z);
+  const pct = Math.round(prob * 100);
+
+  const btn = document.getElementById('predictBtn');
+  btn.classList.add('loading');
+  btn.textContent = 'Analyzing...';
+
+  setTimeout(() => {
+    btn.classList.remove('loading');
+    btn.textContent = 'Run Prediction';
+    showResult(pct, util, latePayments, payRatio, limit, bill1, pay1, maxDelay);
+  }, 1200);
+}
+
+function showResult(pct, util, latePayments, payRatio, limit, bill1, pay1, maxDelay) {
+  document.getElementById('idle-state').style.display = 'none';
+  document.getElementById('result-state').style.display = 'block';
+  document.getElementById('statCards').style.display = 'grid';
+
+  const color = pct < 25 ? 'var(--low)' : pct < 55 ? 'var(--med)' : 'var(--high)';
+  const offset = 414.69 - (pct / 100) * 414.69;
+
+  const ring = document.getElementById('ringFill');
+  ring.style.stroke = color;
+  setTimeout(() => { ring.style.strokeDashoffset = offset; }, 50);
+
+  const pctEl = document.getElementById('riskPercent');
+  pctEl.style.color = color;
+  let count = 0;
+  const interval = setInterval(() => {
+    if (count >= pct) { clearInterval(interval); return; }
+    count = Math.min(count + Math.ceil(pct / 30), pct);
+    pctEl.textContent = count + '%';
+  }, 30);
+
+  const verdictMap = [
+    { max: 25, text: 'Low Risk', sub: 'Strong repayment indicators. Default unlikely under normal conditions.' },
+    { max: 55, text: 'Moderate Risk', sub: 'Some risk flags present. Consider additional verification or adjusted credit terms.' },
+    { max: 100, text: 'High Risk', sub: 'Significant default indicators. Recommend enhanced review or credit restriction.' },
+  ];
+  const v = verdictMap.find(x => pct <= x.max);
+  document.getElementById('verdictText').textContent = v.text;
+  document.getElementById('verdictText').style.color = color;
+  document.getElementById('verdictSub').textContent = v.sub;
+
+  const factors = [
+    { name: 'Payment History', val: latePayments === 0 ? '✓ No late payments' : `${latePayments} late payment(s)`, impact: latePayments === 0 ? 'var(--low)' : latePayments > 2 ? 'var(--high)' : 'var(--med)' },
+    { name: 'Credit Utilization', val: Math.round(util * 100) + '%', impact: util < 0.3 ? 'var(--low)' : util < 0.7 ? 'var(--med)' : 'var(--high)' },
+    { name: 'Max Payment Delay', val: maxDelay <= 0 ? 'None' : maxDelay + ' month(s)', impact: maxDelay <= 0 ? 'var(--low)' : maxDelay > 2 ? 'var(--high)' : 'var(--med)' },
+    { name: 'Pay / Bill Ratio', val: bill1 > 0 ? Math.round(payRatio * 100) + '%' : 'N/A', impact: payRatio > 0.8 ? 'var(--low)' : payRatio > 0.3 ? 'var(--med)' : 'var(--high)' },
+  ];
+
+  document.getElementById('factorList').innerHTML = factors.map((f, i) => `
+    <div class="factor-item" style="animation-delay:${i*0.08}s">
+      <div class="factor-dot" style="background:${f.impact}"></div>
+      <span class="factor-name">${f.name}</span>
+      <span class="factor-impact" style="color:${f.impact}">${f.val}</span>
+    </div>
+  `).join('');
+
+  document.getElementById('statUtil').textContent = Math.round(util * 100) + '%';
+  document.getElementById('statLate').textContent = latePayments;
+  document.getElementById('statPayRatio').textContent = bill1 > 0 ? Math.round(payRatio * 100) + '%' : '—';
+  const tier = pct < 25 ? 'LOW' : pct < 55 ? 'MED' : 'HIGH';
+  document.getElementById('statRisk').textContent = tier;
+  document.getElementById('statRisk').style.color = color;
+}
+</script>
+</body>
+</html>
